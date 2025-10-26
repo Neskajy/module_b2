@@ -24,6 +24,7 @@ Route::middleware(\App\Http\Middleware\CheckIsAdmin::class)->group(function() {
 });
 
 Route::get("feedbacks", [ReviewsController::class, "index"]);
+Route::get("feedbacks/my", [ReviewsController::class, "my"])->middleware("auth:sanctum");
 Route::post("feedbacks", [ReviewsController::class, "store"])->middleware("auth:sanctum");
 Route::patch("feedbacks/{id}", [ReviewsController::class, "update"])->middleware("auth:sanctum");
 Route::delete("feedbacks/{id}", [ReviewsController::class, "destroy"])->middleware("auth:sanctum");
