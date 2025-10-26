@@ -23,12 +23,13 @@ Route::middleware(\App\Http\Middleware\CheckIsAdmin::class)->group(function() {
     Route::delete("locations/{id}", [LocationController::class, "destroy"])->middleware("auth:sanctum");
 });
 
+Route::middleware(\App\Http\Middleware\CheckIsAdmin::class)->group(function() {
+    Route::get("feedbacks/created", [ReviewsController::class, "created"]);
+    Route::patch("feedbacks/{id}/status", [ReviewsController::class, "status"]);
+});
 Route::get("feedbacks", [ReviewsController::class, "index"]);
 Route::get("feedbacks/my", [ReviewsController::class, "my"])->middleware("auth:sanctum");
+Route::get("feedbacks/{id}", [ReviewsController::class, "getFeedback"])->middleware("auth:sanctum");
 Route::post("feedbacks", [ReviewsController::class, "store"])->middleware("auth:sanctum");
 Route::patch("feedbacks/{id}", [ReviewsController::class, "update"])->middleware("auth:sanctum");
 Route::delete("feedbacks/{id}", [ReviewsController::class, "destroy"])->middleware("auth:sanctum");
-Route::middleware(\App\Http\Middleware\CheckIsAdmin::class)->group(function() {
-    Route::get("feedbacks/created", [ReviewsController::class, "created"]);
-    Route::get("feedbacks/{id}/status", [ReviewsController::class, "changeStatus"]);
-});
