@@ -6,6 +6,7 @@ use App\Models\Location;
 use App\Models\Review;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -17,33 +18,39 @@ class ReviewsController extends Controller
     public function index(Request $request)
     {
 
+        Log::info($request);
+
         $location_id = $request->query("location_id");
+        $location_name = $request->query("location_name");
 
         $reviews = Review::query()
-            ->where("status", "=", "APPROVED")
+//            ->where("status", "=", "APPROVED")
             ->with("user:id,first_name,last_name,patronymic,avatar")
             ->with("location:id,name")
             ->when($location_id, fn ($q) => $q->where("location_id", $location_id))
+            ->when($location_name, fn ($q, $value) => $q->whereRelation('location', 'name', 'like', "%{$value}%"))
             ->paginate(8);
+
+//        return response()->json([
+//            "message" => $reviews->toSql()
+//        ]);
 
         return response()->json([
             "data" => [
-                "items" => [
-                    $reviews->getCollection()->map(function($review) {
-                        return [
-                            "id" => $review->id,
-                            "user" => [
-                                "id" => $review->user->id,
-                                "first_name" => $review->user->first_name,
-                                "last_name" => $review->user->last_name,
-                                "patronymic" => $review->user->patronymic,
-                                "avatar" => $review->user->avatar
-                            ],
-                            "location" => $review->location->name,
-                            "emotion" => $review->emotion
-                        ];
-                    })
-                ],
+                "items" => $reviews->getCollection()->map(function($review) {
+                    return [
+                        "id" => $review->id,
+                        "user" => [
+                            "id" => $review->user->id,
+                            "first_name" => $review->user->first_name,
+                            "last_name" => $review->user->last_name,
+                            "patronymic" => $review->user->patronymic,
+                            "avatar" => asset("/storage/" . $review->user->avatar)
+                        ],
+                        "location" => $review->location->name,
+                        "emotion" => $review->emotion
+                    ];
+                }),
                 "current_page" => $reviews->currentPage(),
                 "total_pages" => $reviews->total(),
                 "items_per_page" => $reviews->perPage()
@@ -61,21 +68,21 @@ class ReviewsController extends Controller
             ->with("location:id,name");
 
         return response()->json([
-            "data" => [
-                $reviews->get()->map(function ($review) {
-                    return [
-                        "user" => [
-                            $review->user->id,
-                            $review->user->first_name,
-                            $review->user->last_name,
-                            $review->user->patronymic,
-                            $review->user->avatar
-                        ],
-                        "location" => $review->location->name,
-                        "emotion" => $review->emotion
-                    ];
-                })
-            ]
+            "data" => $reviews->get()->map(function ($review) {
+                return [
+                    "user" => [
+                        "id" => $review->user->id,
+                        "first_name" => $review->user->first_name,
+                        "last_name" => $review->user->last_name,
+                        "patronymic" => $review->user->patronymic,
+                        "avatar" => asset("/storage/" . $review->user->avatar)
+                    ],
+                    "location" => $review->location->name,
+                    "emotion" => $review->emotion,
+                    "comment" => $review->comment,
+                    "status" => $review->status
+                ];
+            })
         ]);
     }
 
@@ -270,23 +277,21 @@ class ReviewsController extends Controller
             ->get();
 
         return response()->json([
-            "data" => [
-                $reviews->map(function ($review) {
-                    return [
-                        "id" => $review->id,
-                        "user" => [
-                            "id" => $review->user->id,
-                            "first_name" => $review->first_name,
-                            "patronymic" => $review->user->patronymic,
-                            "avatar" => $review->user->patronymic
-                        ],
-                        "location" => $review->location->name,
-                        "comment" => $review->comment,
-                        "emotion" => $review->emotion,
-                        "status" => $review->status
-                    ];
-                })
-            ]
+            "data" => $reviews->map(function ($review) {
+                return [
+                    "id" => $review->id,
+                    "user" => [
+                        "id" => $review->user->id,
+                        "first_name" => $review->first_name,
+                        "patronymic" => $review->user->patronymic,
+                        "avatar" => asset("/storage/" . $review->user->avatar)
+                    ],
+                    "location" => $review->location->name,
+                    "comment" => $review->comment,
+                    "emotion" => $review->emotion,
+                    "status" => $review->status
+                ];
+            })
         ]);
     }
 

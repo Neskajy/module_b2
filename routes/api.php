@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ReviewsController;
+use App\Http\Middleware\CheckUser;
 
 //Route::get('/user', function (Request $request) {
 //    return $request->user();
@@ -13,14 +14,17 @@ use App\Http\Controllers\ReviewsController;
 Route::prefix("auth")->group(function () {
     Route::post("register", [UserController::class, "register"]);
     Route::post("login", [UserController::class, "login"]);
-    Route::post("logout", [UserController::class, "logout"])->middleware("auth:sanctum");
+    Route::post("logout", [UserController::class, "logout"])->middleware(CheckUser::class);
 });
+
+
+Route::get("user/me", [UserController::class, "user"])->middleware(CheckUser::class);
 
 Route::get("locations", [LocationController::class, "index"]);
 Route::middleware(\App\Http\Middleware\CheckIsAdmin::class)->group(function() {
-    Route::post("locations", [LocationController::class, "store"])->middleware("auth:sanctum");
-    Route::patch("locations/{id}", [LocationController::class, "update"])->middleware("auth:sanctum");
-    Route::delete("locations/{id}", [LocationController::class, "destroy"])->middleware("auth:sanctum");
+    Route::post("locations", [LocationController::class, "store"])->middleware(CheckUser::class);
+    Route::patch("locations/{id}", [LocationController::class, "update"])->middleware(CheckUser::class);
+    Route::delete("locations/{id}", [LocationController::class, "destroy"])->middleware(CheckUser::class);
 });
 
 Route::middleware(\App\Http\Middleware\CheckIsAdmin::class)->group(function() {
@@ -28,8 +32,8 @@ Route::middleware(\App\Http\Middleware\CheckIsAdmin::class)->group(function() {
     Route::patch("feedbacks/{id}/status", [ReviewsController::class, "status"]);
 });
 Route::get("feedbacks", [ReviewsController::class, "index"]);
-Route::get("feedbacks/my", [ReviewsController::class, "my"])->middleware("auth:sanctum");
-Route::get("feedbacks/{id}", [ReviewsController::class, "getFeedback"])->middleware("auth:sanctum");
-Route::post("feedbacks", [ReviewsController::class, "store"])->middleware("auth:sanctum");
-Route::patch("feedbacks/{id}", [ReviewsController::class, "update"])->middleware("auth:sanctum");
-Route::delete("feedbacks/{id}", [ReviewsController::class, "destroy"])->middleware("auth:sanctum");
+Route::get("feedbacks/my", [ReviewsController::class, "my"])->middleware(CheckUser::class);
+Route::get("feedbacks/{id}", [ReviewsController::class, "getFeedback"])->middleware(CheckUser::class);
+Route::post("feedbacks", [ReviewsController::class, "store"])->middleware(CheckUser::class);
+Route::patch("feedbacks/{id}", [ReviewsController::class, "update"])->middleware(CheckUser::class);
+Route::delete("feedbacks/{id}", [ReviewsController::class, "destroy"])->middleware(CheckUser::class);

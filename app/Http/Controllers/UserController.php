@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
 
@@ -14,6 +15,32 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function user(Request $request): JsonResponse
+    {
+        $user = $request->user("sanctum");
+
+        $user->avatar = asset("storage/" . $user->avatar);
+
+        Log::info($user);
+
+        return response()->json([
+            "data" => [
+                "profile" => $user->only([
+                    "id",
+                    "first_name",
+                    "last_name",
+                    "patronymic",
+                    "email",
+                    "avatar"
+                ]),
+            ]
+        ]);
+
+//        return response()->json([
+//            "message" => "111"
+//        ]);
+    }
 
     public function register(Request $request): JsonResponse
     {
@@ -32,12 +59,11 @@ class UserController extends Controller
                     "regex:/^[А-Я][а-я]*$/u"
                 ],
                 "patronymic" => [
-                    "required",
                     "string",
                     "regex:/^[А-Я][а-я]*$/u"
                 ],
-                "avatar" => "required|image|mimes:png,jpg,jpeg|max:4096",
-                "email" => "required|email",
+                "avatar" => "image|mimes:png,jpg,jpeg|max:4096",
+                "email" => "required|email|unique:users,email",
                 "password" => [
                     "string",
                     "required",
